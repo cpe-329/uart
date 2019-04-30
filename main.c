@@ -38,70 +38,73 @@ int main(void)
     volatile uint32_t i;
 
     init(FREQ);
-    P1->SEL0 |= BIT5 | BIT6 | BIT7;     // Set P1.5, P1.6, and P1.7 as
-                                        // SPI pins functionality
+   //******************************************************************************
+//   MSP432P401 Demo - eUSCI_A0 UART echo at 115.2 kHz baud using BRCLK = 3MHz
+//
+//  Echoes back characters received via a PC serial port. SMCLK/ DCO is used as
+//  a clock source
+//
+//                MSP432P401
+//             -----------------
+//         /|\|                 |
+//          | |                 |
+//          --|RST              |
+//            |                 |
+//            |                 |
+//            |     P1.3/UCA0TXD|----> PC (echo)
+//            |     P1.2/UCA0RXD|<---- PC
+//            |                 |
+//
+//******************************************************************************
+// #include "msp.h"
 
-    P2->DIR |= BIT0 | BIT1 | BIT2;      // set as output for LED
+// int main(void)
+// {
+//     WDT_A->CTL = WDT_A_CTL_PW |             // Stop watchdog timer
+//             WDT_A_CTL_HOLD;
 
-    EUSCI_B0->CTLW0 |= EUSCI_B_CTLW0_SWRST; // Put eUSCI state machine in reset
+    // Configure UART pins
+    P1->SEL0 |= BIT2 | BIT3;                // set 2-UART pin as secondary function
 
-    EUSCI_B0->CTLW0 = EUSCI_B_CTLW0_SWRST  | // keep eUSCI in reset
-                      EUSCI_B_CTLW0_MST    | // Set as SPI master
-                      EUSCI_B_CTLW0_CKPH   | // Clock phase offset
-                      EUSCI_B_CTLW0_SYNC   | // Set as synchronous mode
-                      EUSCI_B_CTLW0_SSEL__SMCLK | // SMCLK
-                      EUSCI_B_CTLW0_MSB;     // MSB first
+    // Configure UART
+    EUSCI_A0->CTLW0 |= EUSCI_A_CTLW0_SWRST; // Put eUSCI in reset
+    EUSCI_A0->CTLW0 = EUSCI_A_CTLW0_SWRST | // Remain eUSCI in reset
+            EUSCI_B_CTLW0_SSEL__SMCLK;      // Configure eUSCI clock source for SMCLK
 
-    EUSCI_B0->BRW = 0x01;               // no div - fBitClock = fBRCLK/(UCBRx)
+    // Baud Rate calculation
+    // 3000000/(115200) = 26.041667
+    // Fractional portion = 0.041667
+    // User's Guide Table 21-4: UCBRSx = 0x00
+    // UCBRx = int (26.041667 / 16) = 1
+    // UCBRFx = int (((26.041667/16)-1)*16) = 10
 
-    EUSCI_B0->CTLW0 &= ~EUSCI_B_CTLW0_SWRST;  // Initialize USCI state machine
-    EUSCI_B0->IE |= EUSCI_B_IE_RXIE;          // Enable RX interrupt
+    EUSCI_A0->BRW = 1;                      // Using baud rate calculator
+    EUSCI_A0->MCTLW = (10 << EUSCI_A_MCTLW_BRF_OFS) |
+            EUSCI_A_MCTLW_OS16;
+    EUSCI_A0->CTLW0 &= ~EUSCI_A_CTLW0_SWRST; // Initialize eUSCI
+    EUSCI_A0->IFG &= ~EUSCI_A_IFG_RXIFG;    // Clear eUSCI RX interrupt flag
+    EUSCI_A0->IE |= EUSCI_A_IE_RXIE;        // Enable USCI_A0 RX interrupt
 
     // Enable global interrupt
     __enable_irq();
 
-    // Enable eUSCI_B0 interrupt in NVIC module
-    NVIC->ISER[0] = 1 << ((EUSCIB0_IRQn) & 31);
+    // Enable eUSCIA0 interrupt in NVIC module
+    NVIC->ISER[0] = 1 << ((EUSCIA0_IRQn) & 31);
 
-    while(1)
-    {
-        // write numbers 0-7 to SPI. Use TXIFG to verify TXBUF is empty
-        for(data = 0; data < MAX; data += 2){
-            dac_set(data);
-            for (i = 0; i< 2; i++){}
-        }
-        for(data = 0; data < MAX; data += 2){
-            dac_set(MAX - data);
-            for (i = 0; i< 2; i++){}
-        }
-    }
+    while(1); // do nothing
 }
 
-// SPI interrupt service routine
-// Read from SPI and set P2 multicolor LED
-
-void EUSCIB0_IRQHandler(void)
+// UART interrupt service routine
+void EUSCIA0_IRQHandler(void)
 {
-    volatile uint8_t RXData;
-
-    if (EUSCI_B0->IFG & EUSCI_B_IFG_RXIFG)  // verify RX interrupt
+    if (EUSCI_A0->IFG & EUSCI_A_IFG_RXIFG)
     {
-        RXData = EUSCI_B0->RXBUF;
+        // Check if the TX buffer is empty first
+        while(!(EUSCI_A0->IFG & EUSCI_A_IFG_TXIFG));
 
-        P2->OUT &= ~(BIT0 | BIT1 | BIT2); // reset to 0
-        P2->OUT |= (RXData & 0b0111);                // set data to LEDs
+        // Echo the received character back
+        EUSCI_A0->TXBUF = EUSCI_A0->RXBUF;
     }
 }
 
-void TA0_0_IRQHandler(void) {
-
-    led_on();
-    delay_ms_auto(200);
-    led_off();
-    TIMER_A0->CCTL[0] &= ~TIMER_A_CCTLN_CCIFG;  // Clear the CCR0 interrupt
-    data++;
-    if(data > 4095){
-        data = 0;
-    }
- }
 
