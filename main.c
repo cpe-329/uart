@@ -35,12 +35,10 @@
 #include "spi.h"
 #include "timers.h"
 
-#define FREQ FREQ_24_MHZ
+#define FREQ FREQ_3_MHZ
 
 int main(void)
 {
-    volatile uint16_t data;
-    volatile uint32_t i;
 
     init(FREQ);
   
