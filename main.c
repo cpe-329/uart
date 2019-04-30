@@ -35,7 +35,7 @@
 #include "spi.h"
 #include "timers.h"
 
-#define FREQ FREQ_3_MHZ
+#define FREQ FREQ_24_MHZ
 
 int main(void)
 {
