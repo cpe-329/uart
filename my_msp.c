@@ -22,10 +22,10 @@ inline void init(const unsigned int freq){
     init_dco();
 	set_dco(freq);
 
-	led_init();
-	rgb_init();
+	// led_init();
+	// rgb_init();
 
-	dac_init();
+	// dac_init();
 	// timer_init();
 	//lcd_init();
 	//keypad_init();
