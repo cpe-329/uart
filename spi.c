@@ -1,7 +1,7 @@
 #include "spi.h"
 #include "delay.h"
 
-inline void dac_init(){
+inline void spi_dac_init(){
     P5->SEL0 &= ~(DAC_LATCH_PIN | SPI_CS_PIN);
     P5->SEL1 &= ~(DAC_LATCH_PIN | SPI_CS_PIN);
     P5->DIR |= DAC_LATCH_PIN | SPI_CS_PIN;
@@ -11,21 +11,21 @@ inline void dac_init(){
 
 
 inline void dac_set(const unsigned int val){
+    // Activate periphrial
     cs_low();
-//    NOP
-    while(!(EUSCI_B0->IFG & EUSCI_B_IFG_TXIFG)){}
+    while(!(EUSCI_B0->IFG & EUSCI_B_IFG_TXIFG)){} // wait for tx avail
+    //  Buffer Tx data
     EUSCI_B0->TXBUF = CONTORL_BITS | ((val & 0xF00) >> 8);
-    while(!(EUSCI_B0->IFG & EUSCI_B_IFG_TXIFG)){}
-    EUSCI_B0->TXBUF = val & 0xFF;//data;//dac_cmd(0x800);
-//    NOP
-    while(!(EUSCI_B0->IFG & EUSCI_B_IFG_TXIFG)){}
+    while(!(EUSCI_B0->IFG & EUSCI_B_IFG_TXIFG)){} // wait for tx avail
+    // Buffer Tx data
+    EUSCI_B0->TXBUF = val & 0xFF;
+    // wait for transmission to finish
+    while(!(EUSCI_B0->IFG & EUSCI_B_IFG_TXIFG)){} 
+    // Deactivate periphrial
     cs_high();
-//    NOP
+    // Latch data from DAC input reg to DAC data reg
     latch_low();
-//    NOP
     latch_high();
-//    NOP
-//    delay_ms_auto(1);
 }
 
 inline void cs_low(){

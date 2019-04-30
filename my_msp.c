@@ -6,8 +6,10 @@
  * CPE 329-17/18 Spring 2019
  */
 
-#include "stdint.h"
+#include <stdint.h>
+
 #include "msp.h"
+
 #include "my_msp.h"
 #include "led.h"
 #include "delay.h"
@@ -22,8 +24,9 @@ inline void init(const unsigned int freq){
     init_dco();
 	set_dco(freq);
 
-	// led_init();
-	// rgb_init();
+	spi_dac_init();
+	led_init();
+	rgb_init();
 
 	// dac_init();
 	// timer_init();
