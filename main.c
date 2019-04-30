@@ -5,40 +5,9 @@
 // *
 // * CPE 329-17/18 Spring 2019
 // *
-// *  MCLK = = DCO ~24MHz
-// *  SMCLK = MCLK / 8
-// *  TIMER_A0 utilize SMCLK 3MHz
-// *  TIMER_A0 CCR0 and CCR1 to create 2 timing events
 // */
 
-#include <stdint.h>
-#include "msp.h"
-
-#include "my_msp.h"
-#include "delay.h"
-#include "led.h"
-#include "spi.h"
-#include "timers.h"
-
-#define FREQ FREQ_24_MHZ
-
-#define MAX 1300
-/*
- *  SPI Example using eUSCI_B0 for SPI
- *  P1.5  UCB0CLK   SCLK
- *  P1.6  UCB0SIMO  MOSI
- *  P1.7  UCB0SOMI  MISO
- */
-
-volatile uint16_t data = 0;
-
-int main(void)
-{
-    volatile uint16_t data;
-    volatile uint32_t i;
-
-    init(FREQ);
-   //******************************************************************************
+//******************************************************************************
 //   MSP432P401 Demo - eUSCI_A0 UART echo at 115.2 kHz baud using BRCLK = 3MHz
 //
 //  Echoes back characters received via a PC serial port. SMCLK/ DCO is used as
@@ -56,13 +25,25 @@ int main(void)
 //            |                 |
 //
 //******************************************************************************
-// #include "msp.h"
 
-// int main(void)
-// {
-//     WDT_A->CTL = WDT_A_CTL_PW |             // Stop watchdog timer
-//             WDT_A_CTL_HOLD;
+#include <stdint.h>
+#include "msp.h"
 
+#include "my_msp.h"
+#include "delay.h"
+#include "led.h"
+#include "spi.h"
+#include "timers.h"
+
+#define FREQ FREQ_24_MHZ
+
+int main(void)
+{
+    volatile uint16_t data;
+    volatile uint32_t i;
+
+    init(FREQ);
+  
     // Configure UART pins
     P1->SEL0 |= BIT2 | BIT3;                // set 2-UART pin as secondary function
 
