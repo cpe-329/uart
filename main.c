@@ -35,7 +35,7 @@
 #include "uart.h"
 #include "spi.h"
 
-#define FREQ FREQ_3_MHZ
+#define FREQ FREQ_24_MHZ
 
 volatile unsigned char char_data;
 volatile uint8_t got_fresh_char;
