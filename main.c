@@ -7,25 +7,6 @@
 // *
 // */
 
-//******************************************************************************
-//   MSP432P401 Demo - eUSCI_A0 UART echo at 115.2 kHz baud using BRCLK = 3MHz
-//
-//  Echoes back characters received via a PC serial port. SMCLK/ DCO is used as
-//  a clock source
-//
-//                MSP432P401
-//             -----------------
-//         /|\|                 |
-//          | |                 |
-//          --|RST              |
-//            |                 |
-//            |                 |
-//            |     P1.3/UCA0TXD|----> PC (echo)
-//            |     P1.2/UCA0RXD|<---- PC
-//            |                 |
-//
-//******************************************************************************
-
 #include <stdint.h>
 #include "msp.h"
 
@@ -42,10 +23,11 @@ volatile uint8_t got_fresh_char;
 
 int main(void)
 {
+    unsigned int value;
 
-    unsigned int acc;
     init(FREQ);
-      // Configure UART pins
+
+    // Configure UART pins
     P1->SEL0 |= BIT2 | BIT3;                // set 2-UART pin as secondary function
 
     // Configure UART
@@ -77,11 +59,11 @@ int main(void)
     led_off();
     
     while(1){
-            acc = uart_get_int();
-            dac_set(acc);
-            uart_write_int(acc);
-
-
+            value = uart_get_int();
+            dac_set(value);
+            uart_write_nl();
+            uart_write_int(value);
+            uart_write_nl();
     }
 }
 
@@ -90,16 +72,19 @@ void EUSCIA0_IRQHandler(void)
 {
     if (EUSCI_A0->IFG & EUSCI_A_IFG_RXIFG)
     {
-         led_on();
+        if (has_new){
+          return;
+        }
+        led_on();
         // Check if the TX buffer is empty first
         while(!(EUSCI_A0->IFG & EUSCI_A_IFG_TXIFG)){}
 
         new_char = EUSCI_A0->RXBUF;
         has_new = TRUE;
         // Echo the received character back
-        EUSCI_A0->TXBUF = EUSCI_A0->RXBUF;
+        EUSCI_A0->TXBUF = new_char;
         delay_ms(10, FREQ);
-         led_off();
+        led_off();
     }
 }
 

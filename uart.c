@@ -46,7 +46,7 @@ inline void uart_init(){
 
 }
 
-void uart_write(unsigned char c){
+inline void uart_write(unsigned char c){
     while(!(EUSCI_A0->IFG & EUSCI_A_IFG_TXIFG)){}
     EUSCI_A0->TXBUF = c;
     while(!(EUSCI_A0->IFG & EUSCI_A_IFG_TXIFG)){}
@@ -60,32 +60,26 @@ void uart_write_int(unsigned int acc){
     uart_write((uint8_t)((acc%10) + '0'));
 }
 
+void uart_write_nl(){
+    uart_write('\n');
+    uart_write(0xD);
+}
+
 unsigned int uart_get_int(){
-    int i = -1;
     int accumulator = 0;
+    new_char = 255;
     rgb_set(RGB_BLUE);
     while(new_char != ESCAPE_VAL){
         if (has_new){
-            i = ascii_to_int(new_char);
-            if (i != 255){
-                accumulator = (10 * accumulator) + i;
-                has_new = FALSE;
+            if (new_char == ESCAPE_VAL){
+                break;
+            } else if (new_char >= '0' || new_char <= '9'){
+                accumulator = (10 * accumulator) + (new_char - '0');
             }
+            has_new = FALSE;
         }
     }
-    new_char = 255;
+    has_new = FALSE;
+    new_char = 0;
     return accumulator;
-}
-
-static inline uint8_t ascii_to_int(uint8_t val){
-    if (val == ESCAPE_VAL){
-        rgb_set(RGB_WHITE);
-        return val;
-    }
-    val  = val - '0';
-    if (val <= 9){
-        rgb_set(val);
-        return val;
-    }
-    return 255;
 }
