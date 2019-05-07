@@ -6,10 +6,11 @@
 
 #define SPI_B0_CLK_PIN  P1_5
 #define SPI_B0_MOSI_PIN P1_6
-#define SPI_B0_MISO_PIN P1_7
+// #define SPI_B0_MISO_PIN P1_7
 
 #define SPI_CS_PIN    P5_6
-#define DAC_LATCH_PIN P5_7
+
+#define DAC_LATCH_PIN P6_1
 
 //#define DAC_CMD       (0x8000)
 //#define DAC_BUF_VREF  (0x4000)

@@ -49,17 +49,17 @@ void timer_init(void)
  // Timer A0_0 interrupt service routine
 
 
- // Timer A0_N interrupt service routine for CCR1 - CCR4
-// void TA0_N_IRQHandler(void)
-// {
-// 	P2->OUT |= BIT1;
-//
-//     if(TIMER_A0->CCTL[1]&TIMER_A_CCTLN_CCIFG)   // check for CCR1 interrupt
-//     {
-//         TIMER_A0->CCTL[1] &= ~TIMER_A_CCTLN_CCIFG; // clear CCR1 interrupt
-//
-//         led_flag = 0;
-//     }
-//
-// 	P2->OUT &= ~BIT1;
-// }
+//  Timer A0_N interrupt service routine for CCR1 - CCR4
+void TA0_N_IRQHandler(void)
+{
+	P2->OUT |= BIT1;
+
+    if(TIMER_A0->CCTL[1]&TIMER_A_CCTLN_CCIFG)   // check for CCR1 interrupt
+    {
+        TIMER_A0->CCTL[1] &= ~TIMER_A_CCTLN_CCIFG; // clear CCR1 interrupt
+
+        led_flag = 0;
+    }
+
+	P2->OUT &= ~BIT1;
+}

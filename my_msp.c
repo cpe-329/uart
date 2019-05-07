@@ -16,6 +16,7 @@
 #include "lcd.h"
 #include "keypad.h"
 #include "spi.h"
+#include "uart.h"
 
 
 inline void init(const unsigned int freq){
@@ -24,7 +25,9 @@ inline void init(const unsigned int freq){
     init_dco();
 	set_dco(freq);
 
-	spi_dac_init();
+	uart_init();
+	// spi_dac_init();
+
 	led_init();
 	rgb_init();
 

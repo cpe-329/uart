@@ -9,7 +9,6 @@
 #ifndef __MY_MSP_H__
 #define __MY_MSP_H__
 
-
 // Port 1
 #define P1_0 BIT0  // P1.0
 #define P1_1 BIT1  // P1.1
@@ -59,6 +58,16 @@
 #define P5_5 BIT5  // P5.5
 #define P5_6 BIT6  // P5.6
 #define P5_7 BIT7  // P5.7
+
+// Port 6
+#define P6_0 BIT0  // P6.0
+#define P6_1 BIT1  // P6.1
+#define P6_2 BIT2  // P6.2
+#define P6_3 BIT3  // P6.3
+#define P6_4 BIT4  // P6.4
+#define P6_5 BIT5  // P6.5
+#define P6_6 BIT6  // P6.6
+#define P6_7 BIT7  // P6.7
 
 // Macro for disabling watchdog
 #define DISABLE_WATCHDOG  WDT_A->CTL = WDT_A_CTL_PW | WDT_A_CTL_HOLD;

@@ -42,19 +42,41 @@ volatile uint8_t got_fresh_char;
 
 int main(void)
 {
-    char_data = 0;
-    got_fresh_char = FALSE;
+
     init(FREQ);
-    led_on();
-    delay_ms(500, FREQ);
+      // Configure UART pins
+    P1->SEL0 |= BIT2 | BIT3;                // set 2-UART pin as secondary function
+
+    // Configure UART
+    EUSCI_A0->CTLW0 |= EUSCI_A_CTLW0_SWRST; // Put eUSCI in reset
+    EUSCI_A0->CTLW0 = EUSCI_A_CTLW0_SWRST | // Remain eUSCI in reset
+            EUSCI_B_CTLW0_SSEL__SMCLK;      // Configure eUSCI clock source for SMCLK
+
+    // Baud Rate calculation
+    // 3000000/(115200) = 26.041667
+    // Fractional portion = 0.041667
+    // User's Guide Table 21-4: UCBRSx = 0x00
+    // UCBRx = int (26.041667 / 16) = 1
+    // UCBRFx = int (((26.041667/16)-1)*16) = 10
+
+    EUSCI_A0->BRW = 1;                      // Using baud rate calculator
+    EUSCI_A0->MCTLW = (10 << EUSCI_A_MCTLW_BRF_OFS) |
+                      EUSCI_A_MCTLW_OS16;
+    EUSCI_A0->CTLW0 &= ~EUSCI_A_CTLW0_SWRST; // Initialize eUSCI
+    EUSCI_A0->IFG &= ~EUSCI_A_IFG_RXIFG;    // Clear eUSCI RX interrupt flag
+    EUSCI_A0->IE |= EUSCI_A_IE_RXIE;        // Enable USCI_A0 RX interrupt
     // Enable global interrupt
     __enable_irq();
+
+    // Enable eUSCIA0 interrupt in NVIC module
+    NVIC->ISER[0] = 1 << ((EUSCIA0_IRQn) & 31);
+
+    led_on();
+    delay_ms(500, FREQ);
     led_off();
+    
     while(1){
-        if (got_fresh_char){
-            rgb_set(char_data);
-            // dac_set(translate_char_to_dac(char_data));
-        }
+            dac_set(uart_get_int());
     }
 }
 
@@ -63,14 +85,16 @@ void EUSCIA0_IRQHandler(void)
 {
     if (EUSCI_A0->IFG & EUSCI_A_IFG_RXIFG)
     {
-        led_on();
+         led_on();
         // Check if the TX buffer is empty first
-        while(!(EUSCI_A0->IFG & EUSCI_A_IFG_TXIFG));
-        char_data = EUSCI_A0->RXBUF;
-        got_fresh_char = TRUE;
+        while(!(EUSCI_A0->IFG & EUSCI_A_IFG_TXIFG)){}
+
+        // char_data = EUSCI_A0->RXBUF;
+        // got_fresh_char = TRUE;
         // Echo the received character back
-        EUSCI_A0->TXBUF = char_data;
-        led_off();
+        EUSCI_A0->TXBUF = EUSCI_A0->RXBUF;
+        delay_ms(10, FREQ);
+         led_off();
     }
 }
 

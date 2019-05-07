@@ -6,7 +6,7 @@
 void init_dco(void){
     CS->KEY = CS_KEY_VAL;  // Unlock key
     CS->CTL0 = 0;  // Reset
-    CS->CTL0 = CS_CTL0_DCORSEL_3;
+    CS->CTL0 = CS_CTL0_DCORSEL_3; // 12 MHz
     CS->CTL1 = CS_CTL1_SELA_2 |  // Set ACLK to REFCLK
                CS_CTL1_SELS_3 |  // Set SMCLK to DCO
                CS_CTL1_DIVS__8 | // Divide SMCLK
