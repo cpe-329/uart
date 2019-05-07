@@ -15,23 +15,20 @@ inline void dac_init(){
     latch_high();
 }
 
-inline void dac_set(const unsigned int val){
+void dac_set(const unsigned int val){
+    int i = 0;
     cs_low();
-    NOP
     while(!(EUSCI_B0->IFG & EUSCI_B_IFG_TXIFG)){}
-    NOP
+
     EUSCI_B0->TXBUF = CONTORL_BITS | ((val & 0xF00) >> 8);
-    NOP
     while(!(EUSCI_B0->IFG & EUSCI_B_IFG_TXIFG)){}
-    NOP
+
     EUSCI_B0->TXBUF = val & 0xFF;
-    NOP
     while(!(EUSCI_B0->IFG & EUSCI_B_IFG_TXIFG)){}
-    NOP
+
+    for (i = 0; i < 10; i++){}
     cs_high();
-    NOP
     latch_low();
-    NOP
     latch_high();
 }
 

@@ -22,7 +22,7 @@
 #define DAC_DATA_MASK (0x0FFF)
  
 inline void dac_init();
-inline void dac_set(const unsigned int data);
+void dac_set(const unsigned int data);
 
 inline void cs_low();
 inline void cs_high();

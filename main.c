@@ -16,7 +16,7 @@
 #include "spi.h"
 #include "uart.h"
 
-#define FREQ FREQ_24_MHZ
+#define FREQ FREQ_48_MHZ
 
 volatile unsigned char char_data;
 volatile uint8_t got_fresh_char;
@@ -75,6 +75,8 @@ int main(void)
 
     led_on();
     dac_set(0);
+    delay_ms(500, FREQ);
+    dac_set(4000);
     delay_ms(500, FREQ);
     led_off();
 //    while(1){
