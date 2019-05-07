@@ -8,15 +8,17 @@
 #include <stdint.h>
 
 #include "msp.h"
+#include "led.h"
+#include "delay.h"
 #include "my_msp.h"
 #include "uart.h"
 
-volatile unsigned int has_new = FALSE;
-volatile char new_char = 0;
 
 inline void uart_init(){
     // Configure UART pins
-    P1->SEL0 |= BIT2 | BIT3;                // set 2-UART pin as secondary function
+    //P1->SEL0 |= BIT2 | BIT3;                // set 2-UART pin as secondary function
+    has_new = FALSE;
+    new_char = 0;
 
     // // Configure UART
     // EUSCI_A0->CTLW0 |= EUSCI_A_CTLW0_SWRST; // Put eUSCI in reset
@@ -44,25 +46,45 @@ inline void uart_init(){
 
 }
 
+void uart_write(unsigned char c){
+    while(!(EUSCI_A0->IFG & EUSCI_A_IFG_TXIFG)){}
+    EUSCI_A0->TXBUF = c;
+    while(!(EUSCI_A0->IFG & EUSCI_A_IFG_TXIFG)){}
+}
+
+void uart_write_int(unsigned int acc){
+    rgb_set(RGB_RED);
+    if(acc >= 10){
+        uart_write_int(acc/10);
+    }
+    uart_write((uint8_t)((acc%10) + '0'));
+}
+
 unsigned int uart_get_int(){
     int i = -1;
     int accumulator = 0;
+    rgb_set(RGB_BLUE);
     while(new_char != ESCAPE_VAL){
         if (has_new){
             i = ascii_to_int(new_char);
-            if (i != -1)
+            if (i != 255){
                 accumulator = (10 * accumulator) + i;
+                has_new = FALSE;
+            }
         }
     }
+    new_char = 255;
     return accumulator;
 }
 
 static inline uint8_t ascii_to_int(uint8_t val){
-    if (val == '\n'){
-        return ESCAPE_VAL;
+    if (val == ESCAPE_VAL){
+        rgb_set(RGB_WHITE);
+        return val;
     }
     val  = val - '0';
     if (val <= 9){
+        rgb_set(val);
         return val;
     }
     return 255;

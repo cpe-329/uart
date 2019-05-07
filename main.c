@@ -43,6 +43,7 @@ volatile uint8_t got_fresh_char;
 int main(void)
 {
 
+    unsigned int acc;
     init(FREQ);
       // Configure UART pins
     P1->SEL0 |= BIT2 | BIT3;                // set 2-UART pin as secondary function
@@ -76,7 +77,11 @@ int main(void)
     led_off();
     
     while(1){
-            dac_set(uart_get_int());
+            acc = uart_get_int();
+            dac_set(acc);
+            uart_write_int(acc);
+
+
     }
 }
 
@@ -89,8 +94,8 @@ void EUSCIA0_IRQHandler(void)
         // Check if the TX buffer is empty first
         while(!(EUSCI_A0->IFG & EUSCI_A_IFG_TXIFG)){}
 
-        // char_data = EUSCI_A0->RXBUF;
-        // got_fresh_char = TRUE;
+        new_char = EUSCI_A0->RXBUF;
+        has_new = TRUE;
         // Echo the received character back
         EUSCI_A0->TXBUF = EUSCI_A0->RXBUF;
         delay_ms(10, FREQ);
