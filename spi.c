@@ -10,19 +10,28 @@ inline void dac_init(){
     P6->SEL0 &= ~DAC_LATCH_PIN;
     P6->SEL1 &= ~DAC_LATCH_PIN;
     P6->DIR |= DAC_LATCH_PIN;
+
     cs_high();
     latch_high();
 }
 
 inline void dac_set(const unsigned int val){
     cs_low();
+    NOP
     while(!(EUSCI_B0->IFG & EUSCI_B_IFG_TXIFG)){}
+    NOP
     EUSCI_B0->TXBUF = CONTORL_BITS | ((val & 0xF00) >> 8);
+    NOP
     while(!(EUSCI_B0->IFG & EUSCI_B_IFG_TXIFG)){}
+    NOP
     EUSCI_B0->TXBUF = val & 0xFF;
+    NOP
     while(!(EUSCI_B0->IFG & EUSCI_B_IFG_TXIFG)){}
+    NOP
     cs_high();
+    NOP
     latch_low();
+    NOP
     latch_high();
 }
 

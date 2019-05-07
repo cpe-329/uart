@@ -42,7 +42,7 @@ int main(void)
     EUSCI_B0->BRW = 0x01;               // no div - fBitClock = fBRCLK/(UCBRx)
 
     EUSCI_B0->CTLW0 &= ~EUSCI_B_CTLW0_SWRST;  // Initialize USCI state machine
-    EUSCI_B0->IE |= EUSCI_B_IE_RXIE;          // Enable RX interrupt
+//    EUSCI_B0->IE |= EUSCI_B_IE_RXIE;          // Enable RX interrupt
 
     // Configure UART pins
     P1->SEL0 |= UART_PINS;                // set 2-UART pin as secondary function
@@ -50,7 +50,7 @@ int main(void)
     // Configure UART
     EUSCI_A0->CTLW0 |= EUSCI_A_CTLW0_SWRST; // Put eUSCI in reset
     EUSCI_A0->CTLW0 = EUSCI_A_CTLW0_SWRST | // Remain eUSCI in reset
-                      EUSCI_A_CTLW0_SSEL__SMCLK;      // Configure eUSCI clock source for SMCLK
+                      EUSCI_B_CTLW0_SSEL__SMCLK;      // Configure eUSCI clock source for SMCLK
 
     // Baud Rate calculation
     // 3000000/(115200) = 26.041667
@@ -71,22 +71,19 @@ int main(void)
 
     // Enable eUSCIA0 interrupt in NVIC module
     NVIC->ISER[0] = 1 << ((EUSCIA0_IRQn) & 31);
-    NVIC->ISER[0] = 1 << ((EUSCIB0_IRQn) & 31);
+//    NVIC->ISER[0] = 1 << ((EUSCIB0_IRQn) & 31);
 
     led_on();
-    dac_set(3000);
+    dac_set(0);
     delay_ms(500, FREQ);
     led_off();
-    
-    while(1){
-      dac_set(1000);
-    }
+//    while(1){
+//      dac_set(1000);
+//    }
     while(1){
             value = uart_get_int();
 
             rgb_set(RGB_OFF);
-            delay_ms(500, FREQ);
-
             led_on();
 
             dac_set(value);
