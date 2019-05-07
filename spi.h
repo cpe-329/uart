@@ -6,6 +6,7 @@
 
 #define SPI_B0_CLK_PIN  P1_5
 #define SPI_B0_MOSI_PIN P1_6
+#define SPI_B0_PINS (BIT7 | SPI_B0_CLK_PIN | SPI_B0_MOSI_PIN)
 // #define SPI_B0_MISO_PIN P1_7
 
 #define SPI_CS_PIN    P5_6

@@ -73,7 +73,7 @@ unsigned int uart_get_int(){
         if (has_new){
             if (new_char == ESCAPE_VAL){
                 break;
-            } else if (new_char >= '0' || new_char <= '9'){
+            } else if (new_char >= '0' && new_char <= '9'){
                 accumulator = (10 * accumulator) + (new_char - '0');
             }
             has_new = FALSE;

@@ -13,8 +13,8 @@
 #include "my_msp.h"
 #include "delay.h"
 #include "led.h"
-#include "uart.h"
 #include "spi.h"
+#include "uart.h"
 
 #define FREQ FREQ_24_MHZ
 
@@ -27,13 +27,30 @@ int main(void)
 
     init(FREQ);
 
+    // Set P1.5, P1.6, and P1.7 as SPI pins functionality
+    P1->SEL0 |= BIT5 | BIT6 | BIT7;  // SPI_B0_PINS;     
+
+    EUSCI_B0->CTLW0 |= EUSCI_B_CTLW0_SWRST; // Put eUSCI state machine in reset
+
+    EUSCI_B0->CTLW0 = EUSCI_B_CTLW0_SWRST  | // keep eUSCI in reset
+                      EUSCI_B_CTLW0_MST    | // Set as SPI master
+                      EUSCI_B_CTLW0_CKPH   | // Clock phase offset
+                      EUSCI_B_CTLW0_SYNC   | // Set as synchronous mode
+                      EUSCI_B_CTLW0_SSEL__SMCLK | // SMCLK
+                      EUSCI_B_CTLW0_MSB;     // MSB first
+
+    EUSCI_B0->BRW = 0x01;               // no div - fBitClock = fBRCLK/(UCBRx)
+
+    EUSCI_B0->CTLW0 &= ~EUSCI_B_CTLW0_SWRST;  // Initialize USCI state machine
+    EUSCI_B0->IE |= EUSCI_B_IE_RXIE;          // Enable RX interrupt
+
     // Configure UART pins
-    P1->SEL0 |= BIT2 | BIT3;                // set 2-UART pin as secondary function
+    P1->SEL0 |= UART_PINS;                // set 2-UART pin as secondary function
 
     // Configure UART
     EUSCI_A0->CTLW0 |= EUSCI_A_CTLW0_SWRST; // Put eUSCI in reset
     EUSCI_A0->CTLW0 = EUSCI_A_CTLW0_SWRST | // Remain eUSCI in reset
-            EUSCI_B_CTLW0_SSEL__SMCLK;      // Configure eUSCI clock source for SMCLK
+                      EUSCI_A_CTLW0_SSEL__SMCLK;      // Configure eUSCI clock source for SMCLK
 
     // Baud Rate calculation
     // 3000000/(115200) = 26.041667
@@ -48,22 +65,36 @@ int main(void)
     EUSCI_A0->CTLW0 &= ~EUSCI_A_CTLW0_SWRST; // Initialize eUSCI
     EUSCI_A0->IFG &= ~EUSCI_A_IFG_RXIFG;    // Clear eUSCI RX interrupt flag
     EUSCI_A0->IE |= EUSCI_A_IE_RXIE;        // Enable USCI_A0 RX interrupt
+    
     // Enable global interrupt
     __enable_irq();
 
     // Enable eUSCIA0 interrupt in NVIC module
     NVIC->ISER[0] = 1 << ((EUSCIA0_IRQn) & 31);
+    NVIC->ISER[0] = 1 << ((EUSCIB0_IRQn) & 31);
 
     led_on();
+    dac_set(3000);
     delay_ms(500, FREQ);
     led_off();
     
     while(1){
+      dac_set(1000);
+    }
+    while(1){
             value = uart_get_int();
+
+            rgb_set(RGB_OFF);
+            delay_ms(500, FREQ);
+
+            led_on();
+
             dac_set(value);
             uart_write_nl();
             uart_write_int(value);
             uart_write_nl();
+
+            led_off();
     }
 }
 
