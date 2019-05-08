@@ -73,15 +73,6 @@ int main(void)
     NVIC->ISER[0] = 1 << ((EUSCIA0_IRQn) & 31);
 //    NVIC->ISER[0] = 1 << ((EUSCIB0_IRQn) & 31);
 
-    led_on();
-    dac_set(0);
-    delay_ms(500, FREQ);
-    dac_set(4000);
-    delay_ms(500, FREQ);
-    led_off();
-//    while(1){
-//      dac_set(1000);
-//    }
     while(1){
             value = uart_get_int();
 
